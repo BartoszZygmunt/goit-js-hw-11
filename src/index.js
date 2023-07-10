@@ -1,7 +1,23 @@
 import './sass/index.scss';
 import axios from 'axios';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
+
 let currentPage = 1;
+let total = 1;
+
+let lightbox = new SimpleLightbox('.gallery a', {
+  captionsData: 'alt',
+  captionDelay: 500,
+});
+
+const search = document.getElementById('search-input');
+const searchButton = document.getElementById('search-button');
+const output = document.getElementById('js-output');
+const more = document.getElementById('more');
+
+more.classList.add('hide');
 
 //ustaw conf dla PixaBay
 const configAxios = searchText => {
@@ -34,7 +50,11 @@ async function getPhotos(searchText) {
       );
     } else {
       //debugger;
+      total = response.data.totalHits;
+      Notify.success(`Hooray! We found ${total} images.`);
       response.data.hits.forEach(image => printImage(image));
+      more.classList.remove('hide');
+      lightbox.refresh();
     }
   } catch (error) {
     console.log('bład jakiś...');
@@ -54,7 +74,9 @@ const printImage = image => {
   console.log(smallImage);
   output.innerHTML += `
   <div class="photo-card">
+  <a href="${largeImage}" target="_blank">
   <img class="image" src="${smallImage}" alt="${tags}" loading="lazy" />
+  </a>
   <div class="info">
     <p class="info-item">
       <b>Likes</b> </br>
@@ -79,16 +101,26 @@ const printImage = image => {
   `;
 };
 
-const search = document.getElementById('search-input');
-const searchButton = document.getElementById('search-button');
-const output = document.querySelector('#js-output');
+more.addEventListener('click', async event => {
+  event.preventDefault();
+  if (total / 40 > currentPage) {
+    currentPage += 1;
+    await getPhotos(localStorage.getItem('searchText'));
+  } else {
+    Notify.failure(
+      "We're sorry, but you've reached the end of search results."
+    );
+  }
+});
 
 searchButton.addEventListener('click', async event => {
   event.preventDefault();
+  currentPage = 1;
   const inputValue = search.value;
   output.innerHTML = '';
   console.log('próbujemy...');
   await getPhotos(inputValue);
+  localStorage.setItem('searchText', inputValue);
   search.value = '';
 });
 
