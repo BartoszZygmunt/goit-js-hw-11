@@ -51,7 +51,10 @@ async function getPhotos(searchText) {
     } else {
       //debugger;
       total = response.data.totalHits;
-      Notify.success(`Hooray! We found ${total} images.`);
+      if (total === 1) {
+        Notify.success(`Hooray! We found ${total} images.`);
+      }
+
       response.data.hits.forEach(image => printImage(image));
       more.classList.remove('hide');
       lightbox.refresh();
