@@ -51,7 +51,7 @@ async function getPhotos(searchText) {
     } else {
       //debugger;
       total = response.data.totalHits;
-      if (total === 1) {
+      if (currentPage === 1) {
         Notify.success(`Hooray! We found ${total} images.`);
       }
 
